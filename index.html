@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>チーム進捗表示（STEP1）</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .team {
+      background: #fff;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 8px;
+    }
+    button {
+      margin-right: 10px;
+    }
+
+    button {
+      font-size: 16px;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+    }
+    
+    input {
+      font-size: 16px;
+      padding: 8px;
+    }
+    /* ===== 乗り換えオーバーレイ ===== */
+
+    button:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    input:disabled {
+      opacity: 0.4;
+    }
+
+ .overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+    .hidden {
+      display: none !important;
+    }
+
+    #dice3D {
+      width: 120px;
+      height: 120px;
+      background-size: contain;
+      background-repeat: no-repeat;
+    }
+
+    #diceWrapper {
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  will-change: transform;
+}
+
+@keyframes diceBounce {
+  /* 初期 */
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  /* 溜め */
+  8% {
+    transform: translateY(8px) scale(0.95);
+  }
+
+  /* ① 大バウンド */
+  22% {
+    transform: translateY(-55px) scale(1.08);
+  }
+
+  /* 着地 */
+  38% {
+    transform: translateY(0) scale(0.96);
+  }
+
+  /* ② 中バウンド */
+  50% {
+    transform: translateY(-32px) scale(1.04);
+  }
+
+  /* 着地 */
+  62% {
+    transform: translateY(0) scale(0.985);
+  }
+
+  /* ③ 小バウンド */
+  72% {
+    transform: translateY(-16px) scale(1.02);
+  }
+
+  /* 着地 */
+  80% {
+    transform: translateY(0) scale(0.995);
+  }
+
+  /* ④ 極小 */
+  87% {
+    transform: translateY(-6px) scale(1.01);
+  }
+
+  /* 微振動 */
+  93% {
+    transform: translateY(2px) scale(0.998);
+  }
+
+  /* 完全停止 */
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+
+
+.dice-bounce {
+  animation: diceBounce 1.65s cubic-bezier(.22,.61,.36,1) both;
+}
+
+  </style>
+</head>
+<body>
+
+<!-- ===== プレイヤー登録画面 ===== -->
+<div id="registerScreen">
+  <h2>プレイヤー登録</h2>
+
+    <p id="needRegisterMsg" style="color:#555;">
+    ゲームを始めるには、まず登録してください
+  </p>
+
+  <p>名前：</p>
+  <input type="text" id="playerName" placeholder="名前を入力">
+
+  <p>所属チーム：</p>
+  <select id="teamSelect">
+    <option value="A">Aチーム</option>
+    <option value="B">Bチーム</option>
+  </select>
+
+  <br><br>
+  <button id="registerBtn">決定</button>
+</div>
+
+<!-- ===== ゲーム画面（最初は非表示） ===== -->
+<div id="gameScreen" style="display:none;">
+
+  <h1>チーム進捗</h1>
+
+  <p id="myTeamLabel"></p>
+
+  <div class="team">
+    <h2>Aチーム</h2>
+    <p>現在地：<span id="teamA-position">---</span></p>
+    <p>救済措置：<span id="reliefA">未選択</span></p>
+      <span id="teamA-arrival">到着予定駅: -</span>
+      <p>🎲 サイコロ結果：<span id="diceResultA">-</span></p>
+  
+  <div id="reliefSelectA">
+    <p>救済措置を選んでください</p>
+    <button onclick="selectRelief('A','PLUS3')">3・3・3</button>
+    <button onclick="selectRelief('A','DOUBLE')">ダブル</button>
+    <button onclick="selectRelief('A','PLUS1')">＋1</button>
+  </div>
+
+  <button id="rollDiceBtnA">サイコロを振る</button>
+  <button id="plus3BtnA">＋3しますか？</button>
+  <button id="doubleBtnA">2倍にしますか？</button>
+  <button id="arriveBtnA">駅に到着</button>
+  <input type="number" id="walkA" placeholder="歩いた駅数">
+  <button id="addWalkA">加算</button>
+  <button id="undoBtnA">Aチームを戻す</button>
+  <p>⏳ 残り時間：<span id="waitA">-</span></p><div id="teamA-remaining"></div>
+  </div>
+
+  <div class="team">
+    <h2>Bチーム</h2>
+    <p>現在地：<span id="teamB-position">---</span></p>
+    <p>救済措置：<span id="reliefB">未選択</span></p>
+      <span id="teamB-arrival">到着予定駅: -</span>
+      <p>🎲 サイコロ結果：<span id="diceResultB">-</span></p>
+  
+  <div id="reliefSelectB">
+    <p>救済措置を選んでください</p>
+    <button onclick="selectRelief('B','PLUS3')">3・3・3</button>
+    <button onclick="selectRelief('B','DOUBLE')">ダブル</button>
+    <button onclick="selectRelief('B','PLUS1')">＋1</button>
+  </div>
+  
+  <button id="rollDiceBtnB">サイコロを振る</button>
+  <button id="plus3BtnB">＋3しますか？</button>
+  <button id="doubleBtnB">2倍にしますか？</button>
+  <button id="arriveBtnB">駅に到着</button>
+  <input type="number" id="walkB" placeholder="歩いた駅数">
+  <button id="addWalkB">加算</button>
+  <button id="undoBtnB">Bチームを戻す</button>
+  <p>⏳ 残り時間：<span id="waitB">-</span></p><div id="teamB-remaining"></div>
+
+  </div>
+
+  <button id="resetBtn" style="margin-top:20px;">
+    全データをリセット
+  </button>
+
+</div>
+
+<!-- ===== 乗り換えオーバーレイ ===== -->
+<div id="overlay" class="overlay">
+  <div class="overlay-box">
+    <p id="overlayText"></p>
+    <button id="overlayCloseBtn">OK</button>
+  </div>
+</div>
+
+<!-- ===== サイコロオーバーレイ ===== -->
+<div id="diceOverlay" class="overlay">
+  <div id="diceWrapper">
+
+    <img
+      id="diceGif"
+      src="./dice_roll_8.gif"
+      alt="dice"
+      style="width:140px; display:none; cursor:pointer;"
+    >
+
+  </div>
+
+  <video
+    id="cutinVideo"
+    src="cutin.mp4"
+    class="hidden"
+    style="width:240px;"
+    muted
+    playsinline
+  ></video>
+</div>
+
+<!-- Firebase core -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+
+<!-- Realtime Database -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<!-- あなたのJS -->
+<script src="script.js"></script>
+
+<audio id="diceSe" src="./dice_roll_se.wav" preload="auto"></audio>
+
+</body>
+</html>
+
+
+

@@ -1,0 +1,167 @@
+/* 画面全体クリック可能 */
+#diceArea {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* サイコロ面 */
+#diceFace {
+  width: 100%;
+  height: 100%;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* 出目画像 */
+.face-1  { background-image: url("./dice_1.png"); }
+.face-2  { background-image: url("./dice_2.png"); }
+.face-3  { background-image: url("./dice_3.png"); }
+.face-4  { background-image: url("./dice_4.png"); }
+.face-5  { background-image: url("./dice_5.png"); }
+.face-6  { background-image: url("./dice_6.png"); }
+.face-7  { background-image: url("./dice_7.png"); }
+.face-8  { background-image: url("./dice_8.png"); }
+.face-9  { background-image: url("./dice_9.png"); }
+.face-10 { background-image: url("./dice_10.png"); }
+
+/* 結果文字 */
+#diceResult {
+  position: fixed;
+  bottom: 30px;
+  width: 100%;
+  text-align: center;
+  font-size: 24px;
+}
+
+/* クリックできるように */
+#diceFace {
+  cursor: pointer;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display:none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+#diceOverlay .overlay-box {
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+}
+
+#diceWrapper {
+  width: 140px;
+  height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  will-change: transform;
+}
+
+#diceGif {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+@keyframes diceBounce {
+  /* 初期 */
+  0% {
+    transform: translateY(0) scale(1);
+  }
+
+  /* 溜め */
+  8% {
+    transform: translateY(8px) scale(0.95);
+  }
+
+  /* ① 大バウンド */
+  22% {
+    transform: translateY(-55px) scale(1.08);
+  }
+
+  /* 着地 */
+  38% {
+    transform: translateY(0) scale(0.96);
+  }
+
+  /* ② 中バウンド */
+  50% {
+    transform: translateY(-32px) scale(1.04);
+  }
+
+  /* 着地 */
+  62% {
+    transform: translateY(0) scale(0.985);
+  }
+
+  /* ③ 小バウンド */
+  72% {
+    transform: translateY(-16px) scale(1.02);
+  }
+
+  /* 着地 */
+  80% {
+    transform: translateY(0) scale(0.995);
+  }
+
+  /* ④ 極小 */
+  87% {
+    transform: translateY(-6px) scale(1.01);
+  }
+
+  /* 微振動 */
+  93% {
+    transform: translateY(2px) scale(0.998);
+  }
+
+  /* 完全停止 */
+  100% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+#diceWrapper.dice-bounce {
+  animation: diceBounce 2.1s cubic-bezier(.22,.61,.36,1) both;
+}
+
+/* ===== スマホ用タップしやすさ ===== */
+#diceWrapper {
+  touch-action: manipulation;
+}
+
+#diceGif {
+  pointer-events: auto;
+}
+
+/* ===== スマホ専用サイズ調整 ===== */
+@media (max-width: 600px) {
+  #diceWrapper {
+    width: 180px;
+    height: 180px;
+  }
+
+  #diceGif {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+@media (max-width: 600px) {
+  #diceOverlay {
+    align-items: center;
+    padding-bottom: 10vh;
+  }
+}
